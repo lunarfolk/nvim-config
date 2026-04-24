@@ -5,12 +5,15 @@ local utils = require("lunarfolk.utils")
 vim.keymap.set('n', "<leader>f", builtin.find_files, { desc = "Telescope find files" })
 vim.keymap.set('n', "<leader>g", builtin.live_grep, { desc = "Telescope live grep" })
 vim.keymap.set('n', "<leader>h", builtin.help_tags, { desc = "Telescope help tags" })
+vim.keymap.set('n', "<leader>ut", function()
+    builtin.colorscheme({ enable_preview = true })
+end, { desc = "Telescope colorscheme picker" })
 
 -- Neotree
 vim.keymap.set('n', "<leader>e", "<Cmd>Neotree reveal<CR>", { desc = "Open file explorer" })
 
--- Opencode
-vim.keymap.set('n', "<leader>o", "<Cmd>vsplit | terminal opencode<CR>", { desc = "Open opencode in vertical split" })
+-- AI agent
+vim.keymap.set('n', "<leader>o", "<Cmd>vsplit | terminal cursor-agent<CR>", { desc = "Open cursor-agent in vertical split" })
 vim.keymap.set('t', "<C-Space>", "<C-\\><C-N>", { desc = "Unfocus terminal" })
 
 -- CodeDiff
