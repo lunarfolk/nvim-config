@@ -13,7 +13,24 @@ end, { desc = "Telescope colorscheme picker" })
 vim.keymap.set('n', "<leader>e", "<Cmd>Neotree reveal<CR>", { desc = "Open file explorer" })
 
 -- AI agent
-vim.keymap.set('n', "<leader>o", "<Cmd>vsplit | terminal cursor-agent<CR>", { desc = "Open cursor-agent in vertical split" })
+local cursor_agent_bufnr = nil
+vim.keymap.set('n', "<leader>o", function()
+    if cursor_agent_bufnr and vim.api.nvim_buf_is_valid(cursor_agent_bufnr) then
+        local winid = vim.fn.bufwinid(cursor_agent_bufnr)
+        if winid ~= -1 then
+            vim.api.nvim_win_close(winid, true)
+            return
+        end
+
+        vim.cmd("rightbelow vsplit")
+        vim.api.nvim_win_set_buf(0, cursor_agent_bufnr)
+        return
+    end
+
+    vim.cmd("rightbelow vsplit")
+    vim.cmd("terminal cursor-agent")
+    cursor_agent_bufnr = vim.api.nvim_get_current_buf()
+end, { desc = "Toggle cursor-agent terminal" })
 vim.keymap.set('t', "<C-Space>", "<C-\\><C-N>", { desc = "Unfocus terminal" })
 
 -- CodeDiff
