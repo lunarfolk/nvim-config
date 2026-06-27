@@ -69,7 +69,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
     callback = function(e)
         local telescope = require("telescope.builtin")
         vim.keymap.set("n", "gd", telescope.lsp_definitions, { buffer = e.buf, desc = "Go-to defintion" })
-        vim.keymap.set("n", "gr", telescope.lsp_references, { buffer = e.buf, desc = "Go-to references" })
+        vim.keymap.set("n", "grr", telescope.lsp_references, { buffer = e.buf, desc = "Go-to references" })
         vim.keymap.set("n", "K", function() vim.lsp.buf.hover() end, { buffer = e.buf, desc = "Hover" })
         vim.keymap.set("n", "<leader>s", telescope.lsp_document_symbols, { buffer = e.buf, desc = "Find symbol in buffer" })
         vim.keymap.set("n", "<leader>S", telescope.lsp_workspace_symbols, { buffer = e.buf, desc = "Find symbol in workspace" })
