@@ -1,5 +1,6 @@
 local builtin = require("telescope.builtin")
 local utils = require("lunarfolk.utils")
+local agents = require("lunarfolk.agents")
 
 -- Telescope
 vim.keymap.set('n', "<leader>f", builtin.find_files, { desc = "Telescope find files" })
@@ -12,25 +13,26 @@ end, { desc = "Telescope colorscheme picker" })
 -- Neotree
 vim.keymap.set('n', "<leader>e", "<Cmd>Neotree reveal<CR>", { desc = "Open file explorer" })
 
--- AI agent
-local cursor_agent_bufnr = nil
-vim.keymap.set('n', "<leader>o", function()
-    if cursor_agent_bufnr and vim.api.nvim_buf_is_valid(cursor_agent_bufnr) then
-        local winid = vim.fn.bufwinid(cursor_agent_bufnr)
-        if winid ~= -1 then
-            vim.api.nvim_win_close(winid, true)
-            return
-        end
+-- AI agents
+vim.keymap.set('n', "<leader>oo", function()
+    agents.toggle("opencode")
+end, { desc = "Toggle opencode terminal" })
+vim.keymap.set('n', "<leader>op", function()
+    agents.toggle("pi")
+end, { desc = "Toggle pi terminal" })
+vim.keymap.set('x', "<leader>o", function()
+    agents.send_selection("opencode")
+end, { desc = "Send selection to opencode" })
+vim.keymap.set('x', "<leader>p", function()
+    agents.send_selection("pi")
+end, { desc = "Send selection to pi" })
 
-        vim.cmd("rightbelow vsplit")
-        vim.api.nvim_win_set_buf(0, cursor_agent_bufnr)
-        return
-    end
+pcall(function()
+    require("which-key").add({
+        { "<leader>o", group = "agents" },
+    })
+end)
 
-    vim.cmd("rightbelow vsplit")
-    vim.cmd("terminal cursor-agent")
-    cursor_agent_bufnr = vim.api.nvim_get_current_buf()
-end, { desc = "Toggle cursor-agent terminal" })
 vim.keymap.set('t', "<C-Space>", "<C-\\><C-N>", { desc = "Unfocus terminal" })
 
 -- CodeDiff
