@@ -7,6 +7,20 @@ return {
     {
         "neovim/nvim-lspconfig",
         config = function()
+            vim.lsp.config("gopls", {
+                settings = {
+                    gopls = {
+                        -- Fast, imports-based vulnerability diagnostics in go.mod.
+                        vulncheck = "Imports",
+
+                        -- Show a code lens on go.mod for the slower, precise govulncheck run.
+                        codelenses = {
+                            run_govulncheck = true,
+                        },
+                    },
+                },
+            })
+
             vim.lsp.enable("lua_ls")
             vim.lsp.enable("rust_analyzer")
             vim.lsp.enable("gopls")
