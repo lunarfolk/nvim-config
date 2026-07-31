@@ -50,23 +50,87 @@ local function lualine_tinted_theme()
     return theme
 end
 
+-- Keep Kitty's terminal colours aligned with the active Neovim colourscheme.
+-- Chameleon.nvim only synchronized `Normal.bg` to Kitty's `background`, so a
+-- theme switch left Kitty's cursor at its previous colour.
+local function setup_kitty_theme_sync()
+    local function hex(color)
+        return color and string.format("#%06x", color)
+    end
+
+    local function read_kitty_colors()
+        local result = vim.system({ "kitty", "@", "get-colors" }, { text = true }):wait()
+        if result.code ~= 0 then
+            return {}
+        end
+
+        local colors = {}
+        for name, color in result.stdout:gmatch("([%w_]+)%s+([#%x]+)") do
+            if name == "background" or name == "cursor" then
+                colors[name] = color
+            end
+        end
+        return colors
+    end
+
+    local original_colors = read_kitty_colors()
+    local warned = false
+
+    local function set_kitty_colors(colors)
+        local command = { "kitty", "@", "set-colors" }
+        for name, color in pairs(colors) do
+            table.insert(command, name .. "=" .. color)
+        end
+
+        vim.system(command, { text = true }, function(result)
+            if result.code ~= 0 and not warned then
+                warned = true
+                vim.schedule(function()
+                    vim.notify("Kitty theme sync failed: " .. vim.trim(result.stderr), vim.log.levels.WARN)
+                end)
+            end
+        end)
+    end
+
+    local function sync_kitty_colors()
+        local normal = vim.api.nvim_get_hl(0, { name = "Normal", link = false })
+        local cursor = vim.api.nvim_get_hl(0, { name = "Cursor", link = false })
+        local background = hex(normal.bg)
+        -- Cursor.bg is the block cursor's colour.  Some schemes leave it
+        -- unset, in which case the normal foreground remains a visible default.
+        local cursor_color = hex(cursor.bg or normal.fg)
+
+        if background and cursor_color then
+            set_kitty_colors({ background = background, cursor = cursor_color })
+        end
+    end
+
+    local group = vim.api.nvim_create_augroup("lunarfolk_kitty_theme_sync", { clear = true })
+    vim.api.nvim_create_autocmd({ "ColorScheme", "VimResume" }, {
+        group = group,
+        callback = sync_kitty_colors,
+    })
+    vim.api.nvim_create_autocmd({ "VimLeavePre", "VimSuspend" }, {
+        group = group,
+        callback = function()
+            if next(original_colors) then
+                set_kitty_colors(original_colors)
+            end
+        end,
+    })
+end
+
 return {
     {
-        "shaun-mathew/Chameleon.nvim",
-        lazy = false,
-        priority = 1000,
-        config = function()
-            local chameleon = require("chameleon")
-            -- Avoid Chameleon's asynchronous background capture racing the colorscheme.
-            -- Keep this in sync with `background` in ~/.config/kitty/kitty.conf.
-            chameleon.original_color = "#090909"
-            chameleon.setup()
-        end,
-    },
-    {
         "tinted-theming/tinted-nvim",
-        priority = 999,
+        priority = 1000,
         lazy = false,
+        config = function(_, opts)
+            -- Register first so tinted-nvim's initial ColorScheme event is
+            -- synchronized as well as subsequent Telescope selections.
+            setup_kitty_theme_sync()
+            require("tinted-nvim").setup(opts)
+        end,
         opts = {
             default_scheme = "base16-default-dark",
             highlights = {
