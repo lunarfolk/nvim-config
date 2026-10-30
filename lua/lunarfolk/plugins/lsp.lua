@@ -6,6 +6,7 @@ return {
     },
     {
         "neovim/nvim-lspconfig",
+        version = "v2.12.0",
         config = function()
             vim.lsp.config("gopls", {
                 settings = {
