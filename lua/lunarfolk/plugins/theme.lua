@@ -56,7 +56,11 @@ return {
         lazy = false,
         priority = 1000,
         config = function()
-            require("chameleon").setup()
+            local chameleon = require("chameleon")
+            -- Avoid Chameleon's asynchronous background capture racing the colorscheme.
+            -- Keep this in sync with `background` in ~/.config/kitty/kitty.conf.
+            chameleon.original_color = "#090909"
+            chameleon.setup()
         end,
     },
     {
