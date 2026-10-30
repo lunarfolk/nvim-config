@@ -5,8 +5,20 @@ local agents = require("lunarfolk.agents")
 -- Telescope
 vim.keymap.set('n', "<leader>f", builtin.find_files, { desc = "Telescope find files" })
 vim.keymap.set('n', "<leader>g", builtin.live_grep, { desc = "Telescope live grep" })
-vim.keymap.set('n', "<leader>h", builtin.help_tags, { desc = "Telescope help tags" })
-vim.keymap.set('n', "<leader>ut", function()
+vim.keymap.set('n', "<leader>th", builtin.help_tags, { desc = "Telescope help tags" })
+
+-- Git
+vim.keymap.set('n', "<leader>b", function()
+    for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+        local buf = vim.api.nvim_win_get_buf(win)
+        if vim.bo[buf].filetype == "fugitiveblame" then
+            vim.api.nvim_win_close(win, true)
+            return
+        end
+    end
+    vim.cmd("Git blame")
+end, { desc = "Toggle git blame" })
+vim.keymap.set('n', "<leader>tt", function()
     builtin.colorscheme({ enable_preview = true })
 end, { desc = "Telescope colorscheme picker" })
 
