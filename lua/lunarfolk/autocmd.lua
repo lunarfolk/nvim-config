@@ -1,5 +1,14 @@
 local default_group = vim.api.nvim_create_augroup("lunarfolk_default_group", { clear = true })
 
+vim.api.nvim_create_autocmd("FileType", {
+    desc = "Use tabs for indentation in CUE files",
+    group = default_group,
+    pattern = "cue",
+    callback = function()
+        vim.bo.expandtab = false
+    end,
+})
+
 vim.api.nvim_create_autocmd("TextYankPost", {
     desc = "Highlight when yanking text",
     group = default_group,
