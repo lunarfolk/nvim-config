@@ -9,6 +9,18 @@ vim.api.nvim_create_autocmd("FileType", {
     end,
 })
 
+vim.api.nvim_create_autocmd("FileType", {
+    desc = "Use two-space indentation for HTML and CSS",
+    group = default_group,
+    pattern = { "html", "css" },
+    callback = function()
+        vim.bo.expandtab = true
+        vim.bo.tabstop = 2
+        vim.bo.shiftwidth = 2
+        vim.bo.softtabstop = 2
+    end,
+})
+
 vim.api.nvim_create_autocmd("TextYankPost", {
     desc = "Highlight when yanking text",
     group = default_group,
