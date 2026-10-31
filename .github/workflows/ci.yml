@@ -1,0 +1,115 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  format:
+    name: Lua format
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Check StyLua formatting
+        uses: JohnnyMorganz/stylua-action@76fd70c03e6340ceaf673366712db9b20560b402 # v5
+        with:
+          token: ${{ github.token }}
+          version: 2.6.0
+          args: --check .
+
+  lint:
+    name: Lua lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Run Luacheck
+        uses: lunarmodules/luacheck@cc089e3f65acdd1ef8716cc73a3eca24a6b845e4 # v1
+
+  neovim:
+    name: Neovim (${{ matrix.channel }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        channel: [stable, nightly]
+    env:
+      XDG_CONFIG_HOME: ${{ github.workspace }}/.ci/nvim-config
+      XDG_DATA_HOME: ${{ github.workspace }}/.ci/nvim-data
+      XDG_STATE_HOME: ${{ github.workspace }}/.ci/nvim-state
+      XDG_CACHE_HOME: ${{ github.workspace }}/.ci/nvim-cache
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Prepare isolated Neovim directories
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME" "$XDG_CACHE_HOME"
+          ln -s "$GITHUB_WORKSPACE" "$XDG_CONFIG_HOME/nvim"
+
+      - name: Cache locked plugins
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ${{ github.workspace }}/.ci/nvim-data
+          key: nvim-${{ runner.os }}-${{ matrix.channel }}-${{ hashFiles('lazy-lock.json') }}
+          restore-keys: |
+            nvim-${{ runner.os }}-${{ matrix.channel }}-
+
+      - name: Install Neovim
+        uses: rhysd/action-setup-vim@febef33995d6649302e9d88dda81e071b68f16a7 # v1
+        with:
+          neovim: true
+          version: ${{ matrix.channel }}
+          token: ${{ github.token }}
+
+      - name: Restore locked plugins and smoke-test configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          nvim --version
+          nvim --headless '+Lazy! restore' "+lua assert(vim.g.mapleader == ' ', 'configuration did not load')" "+lua for _, module in ipairs({'telescope', 'lualine', 'mason', 'neo-tree', 'which-key'}) do assert(pcall(require, module), 'could not load ' .. module) end" '+qa'
+
+  workflow-security:
+    name: Workflow security
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Lint GitHub Actions
+        uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7 # v2
+        with:
+          version: 1.7.12
+
+      - name: Audit GitHub Actions
+        uses: zizmorcore/zizmor-action@53290badfa369cb0bf7ad16342cb62c2fa47ac7b # v0.8.0
+        with:
+          advanced-security: false
+          annotations: true
+          min-confidence: medium
+          min-severity: medium
