@@ -6,8 +6,11 @@ M.agents = {
     pi = { cmd = "pi" },
 }
 
+M.available = {}
 local state = {}
 for name, agent in pairs(M.agents) do
+    local executable = agent.cmd:match("^%S+")
+    M.available[name] = vim.fn.executable(executable) == 1
     state[name] = {
         bufnr = nil,
         cmd = agent.cmd,

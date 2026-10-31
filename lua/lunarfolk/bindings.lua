@@ -26,30 +26,27 @@ end, { desc = "Telescope colorscheme picker" })
 vim.keymap.set("n", "<leader>e", "<Cmd>Neotree reveal<CR>", { desc = "Open file explorer" })
 
 -- AI agents
-vim.keymap.set("n", "<leader>oc", function()
-    agents.toggle("codex")
-end, { desc = "Toggle codex terminal" })
-vim.keymap.set("n", "<leader>oo", function()
-    agents.toggle("opencode")
-end, { desc = "Toggle opencode terminal" })
-vim.keymap.set("n", "<leader>op", function()
-    agents.toggle("pi")
-end, { desc = "Toggle pi terminal" })
-vim.keymap.set("x", "<leader>o", function()
-    agents.send_selection("opencode")
-end, { desc = "Send selection to opencode" })
-vim.keymap.set("x", "<leader>c", function()
-    agents.send_selection("codex")
-end, { desc = "Send selection to codex" })
-vim.keymap.set("x", "<leader>p", function()
-    agents.send_selection("pi")
-end, { desc = "Send selection to pi" })
+local agent_bindings = {
+    codex = { toggle = "<leader>oc", send = "<leader>c" },
+    opencode = { toggle = "<leader>oo", send = "<leader>o" },
+    pi = { toggle = "<leader>op", send = "<leader>p" },
+}
+for name, keys in pairs(agent_bindings) do
+    if agents.available[name] then
+        vim.keymap.set("n", keys.toggle, function()
+            agents.toggle(name)
+        end, { desc = "Toggle " .. name .. " terminal" })
+        vim.keymap.set("x", keys.send, function()
+            agents.send_selection(name)
+        end, { desc = "Send selection to " .. name })
+    end
+end
 
-pcall(function()
-    require("which-key").add({
-        { "<leader>o", group = "agents" },
-    })
-end)
+if agents.available.codex or agents.available.opencode or agents.available.pi then
+    pcall(function()
+        require("which-key").add({ { "<leader>o", group = "agents" } })
+    end)
+end
 
 vim.keymap.set("t", "<C-Space>", "<C-\\><C-N>", { desc = "Unfocus terminal" })
 
