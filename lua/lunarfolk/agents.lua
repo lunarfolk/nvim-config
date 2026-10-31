@@ -2,7 +2,7 @@ local M = {}
 
 M.agents = {
     codex = { cmd = "codex" },
-    opencode = { cmd = "opencode" },
+    opencode = { cmd = "opencode mini" },
     pi = { cmd = "pi" },
 }
 
