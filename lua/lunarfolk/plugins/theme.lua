@@ -170,6 +170,6 @@ return {
         dependencies = { "nvim-tree/nvim-web-devicons", "tinted-theming/tinted-nvim" },
         config = function()
             require("lualine").setup({ options = { theme = lualine_tinted_theme } })
-        end
+        end,
     },
 }

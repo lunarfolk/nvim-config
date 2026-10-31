@@ -23,4 +23,4 @@ vim.o.smartcase = true
 
 vim.o.confirm = true
 
-vim.diagnostic.config({virtual_text=true})
+vim.diagnostic.config({ virtual_text = true })

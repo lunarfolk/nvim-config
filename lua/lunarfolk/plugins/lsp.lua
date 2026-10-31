@@ -50,11 +50,7 @@ return {
                         }
                     end
 
-                    client.settings = vim.tbl_deep_extend(
-                        "force",
-                        client.settings or {},
-                        settings
-                    )
+                    client.settings = vim.tbl_deep_extend("force", client.settings or {}, settings)
                     config.settings = client.settings
                     client:notify("workspace/didChangeConfiguration", { settings = client.settings })
                 end,
@@ -80,8 +76,8 @@ return {
         },
     },
     {
-         "windwp/nvim-autopairs",
-         event = "InsertEnter",
-         config = true
-    }
+        "windwp/nvim-autopairs",
+        event = "InsertEnter",
+        config = true,
+    },
 }

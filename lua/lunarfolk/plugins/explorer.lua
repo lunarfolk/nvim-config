@@ -1,6 +1,7 @@
 return {
     {
-        "nvim-telescope/telescope.nvim", branch = "master",
+        "nvim-telescope/telescope.nvim",
+        branch = "master",
         dependencies = { "nvim-lua/plenary.nvim" },
         opts = function(_, opts)
             opts.pickers = opts.pickers or {}
@@ -25,7 +26,7 @@ return {
         opts = {
             popup_border_style = "",
             window = {
-                position = "float"
+                position = "float",
             },
             filesystem = {
                 filtered_items = {
@@ -33,7 +34,7 @@ return {
                     hide_gitignored = false,
                     never_show = { ".git" },
                 },
-            }
-        }
-    }
+            },
+        },
+    },
 }
