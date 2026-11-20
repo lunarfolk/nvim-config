@@ -169,7 +169,22 @@ return {
         "nvim-lualine/lualine.nvim",
         dependencies = { "nvim-tree/nvim-web-devicons", "tinted-theming/tinted-nvim" },
         config = function()
-            require("lualine").setup({ options = { theme = lualine_tinted_theme } })
+            local function repository_name()
+                local buffer_path = vim.api.nvim_buf_get_name(0)
+                local root = buffer_path ~= "" and vim.fs.root(buffer_path, ".git")
+                root = root or vim.fn.getcwd()
+                return vim.fs.basename(vim.fs.normalize(root))
+            end
+
+            require("lualine").setup({
+                options = { theme = lualine_tinted_theme },
+                sections = {
+                    lualine_b = { repository_name, "branch", "diff", "diagnostics" },
+                },
+                inactive_sections = {
+                    lualine_b = { repository_name },
+                },
+            })
         end,
     },
 }
