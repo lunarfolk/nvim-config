@@ -25,7 +25,13 @@ return {
             vim.lsp.config("pylsp", {
                 on_init = function(client)
                     local config = client.config
-                    local venv = config.root_dir and vim.fs.joinpath(config.root_dir, ".venv")
+                    -- Workspace members may have their own pyproject.toml/root,
+                    -- while sharing a virtualenv at an ancestor workspace root.
+                    local venv = config.root_dir and vim.fs.find(".venv", {
+                        path = config.root_dir,
+                        upward = true,
+                        type = "directory",
+                    })[1]
 
                     local settings = {
                         pylsp = {
@@ -43,7 +49,7 @@ return {
                         },
                     }
 
-                    -- Only use the project's virtualenv when it exists
+                    -- Use the nearest project/workspace virtualenv when present.
                     if venv and vim.fn.isdirectory(venv) == 1 then
                         settings.pylsp.plugins.jedi = {
                             environment = venv,
