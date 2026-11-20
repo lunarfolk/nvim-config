@@ -10,9 +10,9 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 
 vim.api.nvim_create_autocmd("FileType", {
-    desc = "Use two-space indentation for HTML and CSS",
+    desc = "Use two-space indentation for HTML, CSS, and Nix",
     group = default_group,
-    pattern = { "html", "css" },
+    pattern = { "html", "css", "nix" },
     callback = function()
         vim.bo.expandtab = true
         vim.bo.tabstop = 2

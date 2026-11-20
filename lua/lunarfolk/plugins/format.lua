@@ -4,7 +4,8 @@ return {
         event = { "BufWritePre" },
         opts = {
             formatters_by_ft = {
-                python = { "ruff_format" },
+                nix = { "nixfmt" },
+                python = { "ruff_organize_imports", "ruff_format" },
             },
             format_on_save = {
                 timeout_ms = 500,
