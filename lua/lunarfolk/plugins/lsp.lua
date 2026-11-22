@@ -27,11 +27,12 @@ return {
                     local config = client.config
                     -- Workspace members may have their own pyproject.toml/root,
                     -- while sharing a virtualenv at an ancestor workspace root.
-                    local venv = config.root_dir and vim.fs.find(".venv", {
-                        path = config.root_dir,
-                        upward = true,
-                        type = "directory",
-                    })[1]
+                    local venv = config.root_dir
+                        and vim.fs.find(".venv", {
+                            path = config.root_dir,
+                            upward = true,
+                            type = "directory",
+                        })[1]
 
                     local settings = {
                         pylsp = {
