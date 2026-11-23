@@ -63,6 +63,18 @@ return {
                 end,
             })
 
+            local puppet_gems = vim.fn.stdpath("data")
+                .. "/mason/packages/puppet-editor-services/libexec/vendor/bundle/ruby/2.7.0"
+            if vim.fn.isdirectory(puppet_gems) == 1 then
+                -- Mason's launcher does not add its bundled gems to Ruby's search path.
+                vim.lsp.config("puppet", {
+                    cmd_env = {
+                        -- An empty GEM_PATH suffix tells RubyGems to keep its defaults.
+                        GEM_PATH = puppet_gems .. ":" .. (vim.env.GEM_PATH or ""),
+                    },
+                })
+            end
+
             vim.lsp.enable("pylsp")
             vim.lsp.enable("lua_ls")
             vim.lsp.enable("rust_analyzer")
@@ -70,6 +82,7 @@ return {
             vim.lsp.enable("bashls")
             vim.lsp.enable("vtsls")
             vim.lsp.enable("cue")
+            vim.lsp.enable("puppet")
         end,
     },
     {
