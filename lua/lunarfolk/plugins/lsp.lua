@@ -1,3 +1,32 @@
+local function find_python_venv(root)
+    -- A workspace member can have its own LSP root but share an ancestor's virtualenv.
+    return root and vim.fs.find(".venv", { path = root, upward = true, type = "directory" })[1]
+end
+
+local function start_pylsp(dispatchers, config)
+    -- Resolve pylsp before changing its child process's PATH.
+    local pylsp = vim.fn.exepath("pylsp")
+    local venv = find_python_venv(config.root_dir)
+    local bin = venv and (venv .. "/bin")
+    if pylsp ~= "" and bin and vim.fn.executable(bin .. "/mypy") == 1 then
+        -- pylsp-mypy finds mypy on PATH. Running the project's mypy lets it load
+        -- project plugins, which --python-executable alone does not do.
+        local env = vim.tbl_extend("force", {}, config.cmd_env or {})
+        local path = env.PATH or vim.env.PATH or ""
+        if path ~= bin and not vim.startswith(path, bin .. ":") then
+            path = path == "" and bin or bin .. ":" .. path
+        end
+        env.PATH = path
+        config.cmd_env = env
+    end
+
+    return vim.lsp.rpc.start({ pylsp ~= "" and pylsp or "pylsp" }, dispatchers, {
+        cwd = config.cmd_cwd,
+        env = config.cmd_env,
+        detached = config.detached,
+    })
+end
+
 return {
     {
         "mason-org/mason.nvim",
@@ -23,16 +52,10 @@ return {
             })
 
             vim.lsp.config("pylsp", {
+                cmd = start_pylsp,
                 on_init = function(client)
                     local config = client.config
-                    -- Workspace members may have their own pyproject.toml/root,
-                    -- while sharing a virtualenv at an ancestor workspace root.
-                    local venv = config.root_dir
-                        and vim.fs.find(".venv", {
-                            path = config.root_dir,
-                            upward = true,
-                            type = "directory",
-                        })[1]
+                    local venv = find_python_venv(config.root_dir)
 
                     local settings = {
                         pylsp = {
@@ -46,15 +69,25 @@ return {
                                 pycodestyle = {
                                     maxLineLength = 100,
                                 },
+
+                                pylsp_mypy = {
+                                    live_mode = false,
+                                },
                             },
                         },
                     }
 
                     -- Use the nearest project/workspace virtualenv when present.
-                    if venv and vim.fn.isdirectory(venv) == 1 then
+                    if venv then
                         settings.pylsp.plugins.jedi = {
                             environment = venv,
                         }
+
+                        local python = venv .. "/bin/python"
+                        if vim.fn.executable(python) == 1 then
+                            -- Resolve packages and stubs from the project environment.
+                            settings.pylsp.plugins.pylsp_mypy.overrides = { "--python-executable", python, true }
+                        end
                     end
 
                     client.settings = vim.tbl_deep_extend("force", client.settings or {}, settings)
@@ -76,6 +109,7 @@ return {
             end
 
             vim.lsp.enable("pylsp")
+            vim.lsp.enable("ruff")
             vim.lsp.enable("lua_ls")
             vim.lsp.enable("rust_analyzer")
             vim.lsp.enable("gopls")
