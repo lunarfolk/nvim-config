@@ -54,6 +54,11 @@ end
 -- Chameleon.nvim only synchronized `Normal.bg` to Kitty's `background`, so a
 -- theme switch left Kitty's cursor at its previous colour.
 local function setup_kitty_theme_sync()
+    -- Headless sessions must not change the parent terminal's colours.
+    if #vim.api.nvim_list_uis() == 0 then
+        return
+    end
+
     local function hex(color)
         return color and string.format("#%06x", color)
     end
